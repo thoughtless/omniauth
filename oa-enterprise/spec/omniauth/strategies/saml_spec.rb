@@ -1,9 +1,10 @@
 require File.expand_path('../../../spec_helper', __FILE__)
+require 'base64'
 
 describe OmniAuth::Strategies::SAML, :type => :strategy do
-  
+
   include OmniAuth::Test::StrategyTestCase
-  
+
   def strategy
     [OmniAuth::Strategies::SAML, {
       :assertion_consumer_service_url => "http://consumer.service.url/auth/saml/callback",
@@ -33,5 +34,15 @@ describe OmniAuth::Strategies::SAML, :type => :strategy do
     end
 
   end
-  
+
+  it 'should not fail to autoload AuthRequest when AuthResponse and XMLSecurity are loaded first - integration' do
+    auth_response = File.read(File.join(File.dirname(__FILE__), '..', '..', 'fixtures', 'auth_response.xml'))
+    post '/auth/saml/callback', 'SAMLResponse' => Base64.encode64(auth_response)
+    get '/auth/saml'
+  end
+
+  it 'should not fail to autoload AuthRequest when AuthResponse and XMLSecurity are loaded first - unit' do
+    OmniAuth::Strategies::SAML::XMLSecurity
+    get '/auth/saml'
+  end
 end
